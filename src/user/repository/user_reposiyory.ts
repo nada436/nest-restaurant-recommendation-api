@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { User, UserDocument } from '../schemas/User_Schema';
 import { UseDto } from '../dto/CreateUserDto';
 import { CuisineEnum } from 'src/common/enums/cuisine.enum';
@@ -22,10 +22,14 @@ export class UserRepository {
   }
 
 
-  findByCuisineMatch(cuisines: CuisineEnum[],userId:string) {
-    return this.userModel.find({
-      favoriteCuisines: { $in: cuisines },
-      _id:{$ne:userId}
-    });
-  }
+  findByCuisineMatch(cuisines: CuisineEnum[], userId: string) {
+  return this.userModel.aggregate([
+    {
+      $match: {
+        favoriteCuisines: { $in: cuisines },
+        _id: { $ne: new Types.ObjectId(userId) },
+      },
+    },
+  ]);
+}
 }

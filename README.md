@@ -29,9 +29,6 @@ A robust NestJS-based backend system designed for managing restaurant data, user
 
 ---
 
-## 🏗 Architecture Decisions
-
-> "I chose a modular approach to keep the recommendation flow readable and maintainable. Aggregation was used for the restaurant recommendation pipeline where deduplication and joining restaurant data were required, while user filtering logic was kept separate for clarity and easier debugging."
 
 ### Modular Design
 The project is divided into distinct feature modules (`Restaurant`, `User`, `Follow`, `Recommendation`), each encapsulating its own controllers, services, repositories, and schemas. This ensures a clean separation of concerns and simplifies horizontal scaling.
