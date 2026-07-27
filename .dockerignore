@@ -1,0 +1,46 @@
+# Dependencies
+node_modules
+npm-debug.log*
+
+# Build output
+dist
+
+# Environment files (never bake secrets into the image)
+.env
+.env.*
+!.env.example
+
+# Git
+.git
+.gitignore
+
+# Editor / OS
+.vscode
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+.DS_Store
+Thumbs.db
+
+# Test & coverage
+coverage
+test
+**/*.spec.ts
+**/*.e2e-spec.ts
+
+# Docker files (not needed inside image)
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# CI / CD
+.github
+
+# Logs
+logs
+*.log
+
+# TypeScript source maps (only dist is needed in production)
+**/*.js.map

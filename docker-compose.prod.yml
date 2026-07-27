@@ -1,0 +1,98 @@
+version: '3.9'
+
+services:
+  # ─────────────────────────────────────────────
+  # NestJS application (production build)
+  # ─────────────────────────────────────────────
+  app:
+    image: ${DOCKER_IMAGE:-restaurant-api}:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: restaurant-api-prod
+    restart: always
+    ports:
+      - '${PORT:-3000}:3000'
+    environment:
+      NODE_ENV: production
+      PORT: '${PORT:-3000}'
+      MONGO_URI: '${MONGO_URI}'
+      BETTER_AUTH_SECRET: '${BETTER_AUTH_SECRET}'
+      BETTER_AUTH_URL: '${BETTER_AUTH_URL}'
+    # Secrets are injected at runtime — never commit a .env.prod file
+    env_file:
+      - .env.prod
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3000/api']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+    networks:
+      - restaurant-network
+
+  # ─────────────────────────────────────────────
+  # MongoDB (production — Atlas recommended;
+  # use this service only for self-hosted setups)
+  # ─────────────────────────────────────────────
+  mongo:
+    image: mongo:7.0
+    container_name: restaurant-mongo-prod
+    restart: always
+    # Do NOT expose Mongo port to the host in production
+    expose:
+      - '27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: '${MONGO_INITDB_ROOT_USERNAME}'
+      MONGO_INITDB_ROOT_PASSWORD: '${MONGO_INITDB_ROOT_PASSWORD}'
+      MONGO_INITDB_DATABASE: restaurant_management
+    volumes:
+      - mongo_prod_data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping').ok"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+    networks:
+      - restaurant-network
+
+volumes:
+  mongo_prod_data:
+    driver: local
+
+networks:
+  restaurant-network:
+    driver: bridge
